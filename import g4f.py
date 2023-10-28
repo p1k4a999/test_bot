@@ -57,34 +57,11 @@ user_elements = driver.find_elements(By.CSS_SELECTOR, ".privateChannels-oVe7HL .
 for user_element in user_elements:
     user_name = user_element.find_element(By.CSS_SELECTOR, ".name-2m3Cms").text
 
-    # Ваш код для взаимодействия с пользователем здесь
-    # Например, вы можете использовать GPT-3.5 Turbo для отправки сообщений
-    g4f_messages = [
-        {"role": "user", "content": f"Tell me about yourself, {user_name}"},
-    ]
-
-    g4f_response = g4f.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=g4f_messages,
-        stream=True,
-    )
-
-    for message in g4f_response:
-        print(message['message']['content'], flush=True, end='')
-
-    # Находим элемент поля ввода сообщения
-    message_input = driver.find_element(By.CSS_SELECTOR, ".textArea-12jD-V")
-
-    # Вводим сообщение для пользователя
-    message_input.send_keys(f"Привет, {user_name}! Как дела?")
-
-    # Нажимаем клавишу Enter для отправки сообщения
-    message_input.send_keys(Keys.RETURN)
-
     # Ожидаем появления всплывающего сообщения
     message_element = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, ".notice-3X5ZbR"))
+        EC.presence_of_element_located((By.CSS_SELECTOR, ".notice-3X5ZB"))
     )
+
     message_text = message_element.text
 
     # Генерируем ответ с помощью GPT-3.5 Turbo API
@@ -117,47 +94,23 @@ for user_element in user_elements:
     # Нажимаем клавишу Enter для отправки ответа
     message_input.send_keys(Keys.RETURN)
 
-    # Находим элемент, отображающий список упоминаний
-    mentions_element = driver.find_element(By.CSS_SELECTOR, ".mentionsPopout-2hNoT_")
-
-    # Ожидаем, пока список упоминаний не станет видимым
-    WebDriverWait(driver, 10).until(
-        EC.visibility_of(mentions_element)
+    # Ожидаем появления нового сообщения
+    message_element = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, ".message-2qnXI6"))
     )
 
-    # Находим все элементы, соответствующие упоминаниям в списке
-    mention_elements = mentions_element.find_elements(By.CSS_SELECTOR, ".mention-1Y6aS_")
+    # Извлекаем текст сообщения
+    message_text = message_element.text
 
-    # Обрабатываем каждое упоминание в списке
-    for mention_element in mention_elements:
-        mention_text = mention_element.text
+    # Находим текстовое поле для ввода сообщения
+    message_input = driver.find_element(By.CSS_SELECTOR, ".textArea-12jD-V")
 
-        # Генерируем ответ с помощью GPT-3.5 Turbo API
-        g4f_messages = [
-            {"role": "user", "content": mention_text},
-        ]
+    # Вводим сгенерированный ответ в текстовое поле
+    message_input.send_keys(response_text)
 
-        g4f_response = g4f.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=g4f_messages,
-            stream=True,
-        )
+    # Нажимаем клавишу Enter для отправки ответа
+    message_input.send_keys(Keys.RETURN)
 
-        response_text = g4f_response[-1]["message"]["content"]
+# Вернитесь к начальной странице или закройте меню (в зависимости от ваших потребностей)
 
-        # Нажимаем на упоминание, чтобы открыть окно чата
-        mention_element.click()
-
-        # Ожидаем загрузки окна чата
-        chat_window = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, ".chat-3bRxxu"))
-        )
-
-        # Находим элемент поля ввода сообщения в окне чата
-        message_input = chat_window.find_element(By.CSS_SELECTOR, ".textArea-12jD-V")
-
-        # Вводим ответ в поле ввода сообщения
-        message_input.send_keys(response_text)
-
-        # Нажимаем клавишу Enter для отправки ответа
-        message_input.send_keys(Keys.RETURN)
+input("Нажмите Enter для закрытия браузера...")
